@@ -151,3 +151,33 @@ def answer(q: str = "Who can review the Checkout PR?"):
         action = {"suggested_reviewer": people[0]["person"], "draft": f"Assigned {people[0]['person']} to review (team {people[0]['team']})."}
     return {"track": "T3 Company Brain", "q": q, "answer": f"Best reviewer: {people[0]['person']} ({people[0]['team']}) — works on Checkout, knows the stack." if people else "No owner found.",
             "sources": sources, "action_taken": action, "path": "Person->Project + Doc + Ticket"}
+
+
+@app.get("/scale")
+def scale(nodes: int = 2000):
+    """SCALE PROOF: bulk-ingest synthetic company data with UNWIND batches, then time a traversal."""
+    import time
+    from .db import get_graph
+    nodes = max(100, min(nodes, 5000))  # guard free-tier RAM
+    g = get_graph()
+    batch = 500
+    t0 = time.perf_counter()
+    for start in range(0, nodes, batch):
+        chunk = [{"i": i, "nm": f"scale-user-{i:05d}", "tk": f"SCALE-{i:05d}"} for i in range(start, min(start + batch, nodes))]
+        g.query("""
+        UNWIND $chunk AS row
+        MERGE (p:Person {name: row.nm}) SET p.team='Scale', p.synthetic=true
+        MERGE (t:Ticket {id: row.tk}) SET t.title='Synthetic load ticket', t.status='open', t.synthetic=true
+        MERGE (p)-[:WORKS_ON]->(:Project {name:'Checkout'})
+        MERGE (t)-[:REPORTED_IN]->(:System {name:'payments-api'})
+        """, {"chunk": chunk})
+    ingest_ms = int((time.perf_counter() - t0) * 1000)
+    t1 = time.perf_counter()
+    owners = g.query("MATCH (p:Person)-[:WORKS_ON]->(:Project {name:'Checkout'}) RETURN count(p) AS n")
+    blast = g.query("MATCH (s:System {name:'payments-api'})<-[:DEPENDS_ON*1..3]-(x) RETURN count(DISTINCT x) AS n")
+    total = g.query("MATCH (n) RETURN count(n) AS n")
+    query_ms = int((time.perf_counter() - t1) * 1000)
+    return {"track": "Scale", "ingested": nodes, "ingest_ms": ingest_ms,
+            "people_on_checkout": owners.result_set[0][0], "blast_count": blast.result_set[0][0],
+            "total_nodes": total.result_set[0][0], "traversal_ms": query_ms,
+            "method": "UNWIND batches of 500, MERGE idempotent — click twice, no dupes"}
