@@ -8,16 +8,18 @@
 
 ## What to show + what to say (read word-for-word)
 
-### 0:00-0:25 PROBLEM — show Netlify homepage
+### 0:00-0:25 PROBLEM — show Netlify homepage, let the ticker run
 > "Agents are blind. They answer from chunks, they forget last session, and they can't tell you why. If you ask who owns payments, who fixed it before, or what breaks if it goes down — normal RAG guesses. I built Ops Brain so my agent reads a graph instead."
+
+Slow-scroll once so cards rise in — motion is on, let judges see it.
 
 ### 0:25-0:50 SOLUTION — switch to FalkorDB Browser graph
 > "Everything is nodes and edges in FalkorDB Cloud. Person works on Project, Project uses System, Ticket reported in System, User asked Question, Agent hands off to Agent. One instance, one graph called company_brain. This is the whole company brain."
 
-### 0:50-1:30 T3 — back to Netlify, click ASK (payments-api)
-> "Track 3, Company Brain. I ask: who knows payments-api? It runs this Cypher — match Person to Project to System — and returns Aarav, with the full path Person to Project to System on screen. No hallucination, there's the proof."
+### 0:50-1:30 T3 — back to Netlify, click ASK (payments-api), then ANSWER WITH SOURCES + WHY POSTGRES?
+> "Track 3, Company Brain. Who knows payments-api? Aarav, with the full path on screen — no hallucination. Best reviewer for the Checkout PR? Ranked people plus the docs and tickets it cited. And why Postgres? Traced back to the decision, the reason, the doc, the author. Every answer carries its sources."
 
-Hold 3 sec on the JSON: `{"person":"Aarav","projects":1}`.
+Hold 3 sec on the sources array.
 
 ### 1:30-2:00 T1 — click BLAST, then TRIAGE PAY-101 NOW
 > "Track 1, act on connected data. Blast radius says checkout-web and webhook-worker go down with payments-api. But my agent doesn't stop at answers — watch TRIAGE. It ranks owners from the graph, assigns the ticket to Zainab, flips it to triaged, and logs the action node. The graph changed because the agent acted."
