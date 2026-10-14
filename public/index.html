@@ -3,41 +3,63 @@
 <style>
 :root{--y:#FFDE59;--p:#FF90E8;--c:#7DF9FF;--k:#111}
 *{box-sizing:border-box;font-family:Verdana,system-ui,sans-serif}
-body{background:#FFF6E5;color:var(--k);margin:0;padding:24px}
-.wrap{max-width:900px;margin:0 auto}
+body{background:#FFF6E5;color:var(--k);margin:0;padding:0}
+.ticker{background:var(--k);color:var(--y);overflow:hidden;white-space:nowrap;border-bottom:4px solid var(--k);font-weight:800;font-size:14px;padding:8px 0}
+.ticker span{display:inline-block;padding-right:16px;animation:tick 20s linear infinite;will-change:transform}
+@keyframes tick{to{transform:translateX(-50%)}}
+.wrap{max-width:900px;margin:0 auto;padding:24px}
 .badge{display:inline-block;background:var(--k);color:#fff;padding:6px 12px;border:3px solid var(--k);box-shadow:4px 4px 0 var(--p);font-weight:700}
 h1{font-size:44px;margin:14px 0;text-transform:uppercase;text-shadow:3px 3px 0 var(--c)}
-.card{background:#fff;border:4px solid var(--k);box-shadow:8px 8px 0 var(--k);padding:18px;margin:16px 0}
-.card.t1{box-shadow:8px 8px 0 #FF4911}.card.t2{box-shadow:8px 8px 0 #7DF9FF}.card.t3{box-shadow:8px 8px 0 #FFDE59}
-input,button{border:3px solid var(--k);padding:12px;font-size:16px}
-input{width:70%;background:#fff}button{background:var(--y);font-weight:800;cursor:pointer;box-shadow:4px 4px 0 var(--k)}
+.pop{animation:pop .45s cubic-bezier(.2,.9,.25,1.25)}
+@keyframes pop{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+.rise{opacity:0;transform:translateY(18px)}
+.rise.in{opacity:1;transform:none;transition:transform .5s cubic-bezier(.2,.9,.25,1.15),opacity .4s ease}
+.card{background:#fff;border:4px solid var(--k);box-shadow:8px 8px 0 var(--k);padding:18px;margin:16px 0;will-change:transform;transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translate(-2px,-4px);box-shadow:10px 12px 0 var(--k)}
+.card.t1{box-shadow:8px 8px 0 #FF4911}.card.t1:hover{box-shadow:10px 12px 0 #FF4911}
+.card.t2{box-shadow:8px 8px 0 #7DF9FF}.card.t2:hover{box-shadow:10px 12px 0 #7DF9FF}
+.card.t3{box-shadow:8px 8px 0 #FFDE59}.card.t3:hover{box-shadow:10px 12px 0 #FFDE59}
+input,button,select{border:3px solid var(--k);padding:12px;font-size:16px}
+input{width:70%;background:#fff}button{background:var(--y);font-weight:800;cursor:pointer;box-shadow:4px 4px 0 var(--k);transition:transform .1s ease,box-shadow .1s ease}
+button:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--k)}
 button:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--k)}
 pre{background:var(--k);color:#7DF9FF;padding:12px;overflow:auto;white-space:pre-wrap}
+pre.loading{animation:pulse .8s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.5}}
+pre.fresh{animation:stamp .35s cubic-bezier(.2,.9,.25,1.3)}
+@keyframes stamp{0%{transform:scale(.97)}100%{transform:scale(1)}}
 .row{display:flex;gap:8px;flex-wrap:wrap}
-</style></head><body><div class="wrap">
-<span class="badge">GRAPH HACKS ★ T1+T2+T3</span>
-<h1>Ops Brain</h1>
-<p><b>Company Brain that remembers + acts.</b> FalkorDB is the brain, not decoration. Every answer shows its path.</p>
-<div class="card t3"><h3>🧠 T3 — Who knows it?</h3><div class="row"><input id="q" value="payments-api"/><button onclick="ask()">ASK</button></div><pre id="o1">Hit ASK</pre></div>
-<div class="card t3"><h3>🏆 T3 WINNER — Company Brain answers + acts</h3><div class="row"><input id="qq" value="Who can review the Checkout PR?" style="width:100%"/></div><div class="row"><button onclick="ans()">ANSWER WITH SOURCES</button><button onclick="why()">WHY POSTGRES?</button></div><pre id="o4">Hit ANSWER</pre></div>
-<div class="card t1"><h3>⚡ T1 — Blast radius</h3><div class="row"><input id="s" value="payments-api"/><button onclick="blast()">BLAST</button></div><pre id="o2">Hit BLAST</pre></div>
-<div class="card t1"><h3>🏆 T1 WINNER — Agent decides + takes action</h3><div class="row"><button onclick="act()">TRIAGE PAY-101 NOW</button></div><pre id="o5">Hit TRIAGE — assigns ticket in the graph</pre></div>
-<div class="card t1"><h3>🧮 T1 ALGORITHMS — BFS + PageRank as tools</h3><div class="row"><button onclick="algo()">RUN ALGORITHMS</button></div><pre id="o7">BFS frontier + critical-system ranking</pre></div>
-<div class="card t1"><h3>🔌 MCP — Agent picks its tools</h3><div class="row"><select id="tool" style="border:3px solid #111;padding:12px;font-size:14px"><option>blast_radius</option><option>investigate_alert</option><option>rank_critical_systems</option><option>ask_owner</option><option>auto_assign</option><option>answer_with_sources</option><option>ingest_ticket</option></select><button onclick="mcp()">CALL TOOL</button></div><pre id="o9">JSON-RPC tools/list + tools/call</pre></div>
-<div class="card" style="box-shadow:8px 8px 0 #111"><h3>📦 SCALE — Mass data proof</h3><div class="row"><input id="n" value="2000" style="width:120px"/><button onclick="scale()">INGEST + TIME IT</button></div><pre id="o6">Bulk UNWIND ingest, then timed traversal</pre></div>
-<div class="card t3"><h3>🌱 T3 FRESHNESS — Knowledge stays current</h3><div class="row"><input id="nt" value="Refund webhook delayed" style="width:100%"/></div><div class="row"><button onclick="ingest()">ADD TICKET TO GRAPH</button></div><pre id="o8">Then ANSWER again — it shows up in sources</pre></div>
-<div class="card t2"><h3>🤖 T2 — Memory + handoff</h3><div class="row"><input id="m" value="who owns payments-api?"/><button onclick="mem()">REMEMBER</button><button onclick="hand()">HANDOFF</button></div><pre id="o3">Hit REMEMBER</pre></div>
+@media (prefers-reduced-motion:reduce){.ticker span,.pop,pre.loading,pre.fresh{animation:none}.rise{opacity:1;transform:none}.card,.card:hover,button,button:hover{transform:none;transition:none}}
+</style></head><body>
+<div class="ticker" aria-hidden="true"><span>T1 AGENTS THAT ACT ★ T2 MEMORY + COORDINATION ★ T3 COMPANY BRAIN ★ BFS + PAGERANK AS TOOLS ★ MCP TOOL SELECTION ★&nbsp;</span><span>T1 AGENTS THAT ACT ★ T2 MEMORY + COORDINATION ★ T3 COMPANY BRAIN ★ BFS + PAGERANK AS TOOLS ★ MCP TOOL SELECTION ★&nbsp;</span></div>
+<div class="wrap">
+<span class="badge pop">GRAPH HACKS ★ T1+T2+T3</span>
+<h1 class="pop">Ops Brain</h1>
+<p class="rise"><b>Company Brain that remembers + acts.</b> FalkorDB is the brain, not decoration. Every answer shows its path.</p>
+<div class="card t3 rise"><h3>🧠 T3 — Who knows it?</h3><div class="row"><input id="q" value="payments-api"/><button onclick="ask()">ASK</button></div><pre id="o1">Hit ASK</pre></div>
+<div class="card t3 rise"><h3>🏆 T3 WINNER — Company Brain answers + acts</h3><div class="row"><input id="qq" value="Who can review the Checkout PR?" style="width:100%"/></div><div class="row"><button onclick="ans()">ANSWER WITH SOURCES</button><button onclick="why()">WHY POSTGRES?</button></div><pre id="o4">Hit ANSWER</pre></div>
+<div class="card t1 rise"><h3>⚡ T1 — Blast radius</h3><div class="row"><input id="s" value="payments-api"/><button onclick="blast()">BLAST</button></div><pre id="o2">Hit BLAST</pre></div>
+<div class="card t1 rise"><h3>🏆 T1 WINNER — Agent decides + takes action</h3><div class="row"><button onclick="act()">TRIAGE PAY-101 NOW</button></div><pre id="o5">Hit TRIAGE — assigns ticket in the graph</pre></div>
+<div class="card t1 rise"><h3>🧮 T1 ALGORITHMS — BFS + PageRank as tools</h3><div class="row"><button onclick="algo()">RUN ALGORITHMS</button></div><pre id="o7">BFS frontier + critical-system ranking</pre></div>
+<div class="card t1 rise"><h3>🔌 MCP — Agent picks its tools</h3><div class="row"><select id="tool" style="border:3px solid #111;padding:12px;font-size:14px"><option>blast_radius</option><option>investigate_alert</option><option>rank_critical_systems</option><option>ask_owner</option><option>auto_assign</option><option>answer_with_sources</option><option>ingest_ticket</option></select><button onclick="mcp()">CALL TOOL</button></div><pre id="o9">JSON-RPC tools/list + tools/call</pre></div>
+<div class="card rise" style="box-shadow:8px 8px 0 #111"><h3>📦 SCALE — Mass data proof</h3><div class="row"><input id="n" value="2000" style="width:120px"/><button onclick="scale()">INGEST + TIME IT</button></div><pre id="o6">Bulk UNWIND ingest, then timed traversal</pre></div>
+<div class="card t3 rise"><h3>🌱 T3 FRESHNESS — Knowledge stays current</h3><div class="row"><input id="nt" value="Refund webhook delayed" style="width:100%"/></div><div class="row"><button onclick="ingest()">ADD TICKET TO GRAPH</button></div><pre id="o8">Then ANSWER again — it shows up in sources</pre></div>
+<div class="card t2 rise"><h3>🤖 T2 — Memory + handoff</h3><div class="row"><input id="m" value="who owns payments-api?"/><button onclick="mem()">REMEMBER</button><button onclick="hand()">HANDOFF</button></div><pre id="o3">Hit REMEMBER</pre></div>
 <script>
 const j = async (u)=> (await fetch(u)).json();
-async function ask(){o1.textContent='...';o1.textContent=JSON.stringify(await j('/.netlify/functions/ask?q='+encodeURIComponent(q.value)),null,2)}
-async function blast(){o2.textContent='...';o2.textContent=JSON.stringify(await j('/.netlify/functions/blast?system='+encodeURIComponent(s.value)),null,2)}
-async function mem(){o3.textContent='...';o3.textContent=JSON.stringify(await j('/.netlify/functions/memory?uid=u1&q='+encodeURIComponent(m.value)),null,2)}
-async function hand(){o3.textContent='...';o3.textContent=JSON.stringify(await j('/.netlify/functions/handoff?ticket=PAY-101'),null,2)}
-async function act(){o5.textContent='acting...';o5.textContent=JSON.stringify(await j('/.netlify/functions/act?ticket=PAY-101&system=payments-api'),null,2)}
-async function ans(){o4.textContent='...';o4.textContent=JSON.stringify(await j('/.netlify/functions/answer?q='+encodeURIComponent(qq.value)),null,2)}
-async function why(){o4.textContent='...';o4.textContent=JSON.stringify(await j('/.netlify/functions/answer?q='+encodeURIComponent('Why did we choose Postgres for ledger?')),null,2)}
-async function scale(){o6.textContent='ingesting...';o6.textContent=JSON.stringify(await j('/.netlify/functions/scale?nodes='+encodeURIComponent(n.value)),null,2)}
-async function algo(){o7.textContent='running...';o7.textContent=JSON.stringify(await j('/.netlify/functions/path?ticket=PAY-101'),null,2)}
-async function ingest(){o8.textContent='adding...';o8.textContent=JSON.stringify(await j('/.netlify/functions/ingest?kind=ticket&text='+encodeURIComponent(nt.value)+'&system=payments-api'),null,2)}
-async function mcp(){o9.textContent='calling...';const args={blast_radius:{system:'payments-api'},investigate_alert:{ticket:'PAY-101'},rank_critical_systems:{},ask_owner:{q:'payments-api'},auto_assign:{ticket:'PAY-101',system:'payments-api'},answer_with_sources:{q:'Who can review the Checkout PR?'},ingest_ticket:{text:'MCP probe',system:'payments-api'}}[tool.value];const r=await (await fetch('/.netlify/functions/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool.value,arguments:args}})})).json();o9.textContent=JSON.stringify(r,null,2)}
+function put(id,data){const el=document.getElementById(id);el.classList.remove('loading','fresh');el.textContent=JSON.stringify(data,null,2);void el.offsetWidth;el.classList.add('fresh')}
+function load(id,msg){const el=document.getElementById(id);el.classList.remove('fresh');el.classList.add('loading');el.textContent=msg}
+async function ask(){load('o1','...');put('o1',await j('/.netlify/functions/ask?q='+encodeURIComponent(q.value)))}
+async function blast(){load('o2','...');put('o2',await j('/.netlify/functions/blast?system='+encodeURIComponent(s.value)))}
+async function mem(){load('o3','...');put('o3',await j('/.netlify/functions/memory?uid=u1&q='+encodeURIComponent(m.value)))}
+async function hand(){load('o3','...');put('o3',await j('/.netlify/functions/handoff?ticket=PAY-101'))}
+async function act(){load('o5','acting...');put('o5',await j('/.netlify/functions/act?ticket=PAY-101&system=payments-api'))}
+async function ans(){load('o4','...');put('o4',await j('/.netlify/functions/answer?q='+encodeURIComponent(qq.value)))}
+async function why(){load('o4','...');put('o4',await j('/.netlify/functions/answer?q='+encodeURIComponent('Why did we choose Postgres for ledger?')))}
+async function scale(){load('o6','ingesting...');put('o6',await j('/.netlify/functions/scale?nodes='+encodeURIComponent(n.value)))}
+async function algo(){load('o7','running...');put('o7',await j('/.netlify/functions/path?ticket=PAY-101'))}
+async function ingest(){load('o8','adding...');put('o8',await j('/.netlify/functions/ingest?kind=ticket&text='+encodeURIComponent(nt.value)+'&system=payments-api'))}
+async function mcp(){load('o9','calling...');const args={blast_radius:{system:'payments-api'},investigate_alert:{ticket:'PAY-101'},rank_critical_systems:{},ask_owner:{q:'payments-api'},auto_assign:{ticket:'PAY-101',system:'payments-api'},answer_with_sources:{q:'Who can review the Checkout PR?'},ingest_ticket:{text:'MCP probe',system:'payments-api'}}[tool.value];const r=await (await fetch('/.netlify/functions/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:tool.value,arguments:args}})})).json();put('o9',r)}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.08});
+document.querySelectorAll('.rise').forEach((el,i)=>{el.style.transitionDelay=Math.min(i*60,480)+'ms';io.observe(el)});
 </script></div></body></html>
