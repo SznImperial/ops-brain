@@ -19,10 +19,14 @@ Tracks: T1 Agents That Act + T2 Memory/Coordination + T3 Company Brain.
 
 ## Live demo
 https://ops-brain.netlify.app — neo-brutalism UI.
-- T3: `/.netlify/functions/ask?q=payments-api` → Aarav, path Person->Project->System
-- T1: `/.netlify/functions/blast?system=payments-api` → checkout-web, webhook-worker
-- T2: `/.netlify/functions/memory?uid=u1&q=...` + `/.netlify/functions/handoff?ticket=PAY-101`
-- Python mirror: `app/main.py` (`/ask`, `/blast`, `/memory`, `/handoff`)
+- T3 brain: `/ask?q=payments-api` → Aarav + path; `/answer?q=Who can review the Checkout PR?` → reviewer + sources; decision trace via `?q=Why did we choose Postgres for ledger?`
+- T3 freshness: `/ingest?kind=ticket&text=...&system=payments-api` → next answer cites it
+- T1 act: `/act?ticket=PAY-101&system=payments-api` → investigates, ranks owners, ASSIGNS ticket
+- T1 algorithms: `/path?ticket=PAY-101` → `algo.bfs` frontier + `algo.pageRank` ranking
+- T1 MCP: `POST /mcp` JSON-RPC (`initialize` / `tools/list` / `tools/call`, 7 tools) — `GET /tools` lists them
+- T2 memory: `/memory?uid=u1&q=...` + `/handoff?ticket=PAY-101`
+- Scale: `/scale?nodes=2000` → timed UNWIND ingest + traversal
+- Python mirror: `app/main.py` (same routes, `/mcp` included)
 
 ## Submission checklist
 - [x] Public repo + this README + graph model (done here)

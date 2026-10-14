@@ -1,7 +1,7 @@
-# Demo video — full script + how to record (3 min)
+# Demo video — full script + how to record (4 min)
 
 ## Record setup (5 min before)
-1. Close extra tabs. Open 2 windows side-by-side: left `https://ops-brain.netlify.app`, right FalkorDB Browser on `company_brain` (the graph view with 14 nodes).
+1. Close extra tabs. Open 2 windows side-by-side: left `https://ops-brain.netlify.app`, right FalkorDB Browser on `company_brain`.
 2. Chrome zoom 125%, 1080p, mic test. Quiet room.
 3. Open `app/queries.cypher` in VS Code for 1 quick flash (optional).
 4. Record with Xbox Game Bar (Win+G) or Loom. One take, mistakes OK.
@@ -19,18 +19,22 @@
 
 Hold 3 sec on the JSON: `{"person":"Aarav","projects":1}`.
 
-### 1:30-2:00 T1 — click BLAST
-> "Track 1, act on connected data. I ask: what breaks if payments-api goes down? It follows DEPENDS_ON hops and returns checkout-web and webhook-worker. That's blast radius from the graph, not a guess. In a real incident this auto-assigns the ticket."
+### 1:30-2:00 T1 — click BLAST, then TRIAGE PAY-101 NOW
+> "Track 1, act on connected data. Blast radius says checkout-web and webhook-worker go down with payments-api. But my agent doesn't stop at answers — watch TRIAGE. It ranks owners from the graph, assigns the ticket to Zainab, flips it to triaged, and logs the action node. The graph changed because the agent acted."
 
-Hold 3 sec on `impacted` list.
+Hold 3 sec on `assigned_to`.
 
-### 2:00-2:35 T2 — type `who owns payments-api?`, click REMEMBER, then HANDOFF
-> "Track 2, memory and coordination. I ask as user u1, it stores User Asked Question with timestamp. Refresh — history is still there. Different user, different history, same graph via multigraph. And Triage agent hands off to Fixer agent with the ticket summary shared. They coordinate through the graph."
+### 2:00-2:25 T1 ALGORITHMS + MCP — click RUN ALGORITHMS, then CALL TOOL
+> "And it doesn't hand-write traversals — it calls graph algorithms as tools. BFS gives the investigation frontier from the alert, PageRank ranks payments-api the most critical system. All seven tools are exposed over MCP, so any agent client can list and call them. Tool selection through MCP, check."
 
-Show history list growing.
+### 2:25-2:50 SCALE + FRESHNESS — INGEST 2000, then ADD TICKET, then ANSWER
+> "Scale: two thousand nodes bulk-loaded with timed traversals — sub-second, every agent step. Freshness: I add a ticket right now, ask again, and it's already in the sources. The brain never goes stale."
 
-### 2:35-3:00 CLOSE — scroll to top, show badge T1+T2+T3
-> "One repo, all three tracks. T3 brain, T2 memory, T1 action. Frontend is neo-brutalism on Netlify, functions are TypeScript with falkordb-ts, mirror API in Python FastAPI. Links are in the README — repo, live demo, queries. Thanks."
+### 2:50-3:10 T2 — type `who owns payments-api?`, click REMEMBER, then HANDOFF
+> "Track 2, memory and coordination. I ask as user u1, it stores User Asked Question with timestamp. Refresh — history is still there. And Triage agent hands off to Fixer agent with the ticket summary shared."
+
+### 3:10-3:30 CLOSE — scroll to top, show badge T1+T2+T3
+> "One repo, all three tracks. T3 brain with sources, T2 memory, T1 action with algorithms and MCP. Frontend is neo-brutalism on Netlify, functions are TypeScript with falkordb-ts, mirror API in Python FastAPI. Links are in the README — repo, live demo, queries. Thanks."
 
 Stop recording.
 

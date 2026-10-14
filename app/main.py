@@ -223,3 +223,77 @@ def ingest(kind: str = "ticket", text: str = "Refund webhook delayed", system: s
     total = g.query("MATCH (n) RETURN count(n) AS n").result_set[0][0]
     return {"track": "T3 knowledge stays current", "created": {kind: nid, "text": text, "edge": edge, "system": system},
             "total_nodes": total, "proof": "ask /answer again — this shows up in sources"}
+
+
+MCP_TOOLS = [
+    {"name": "ask_owner", "description": "Rank who owns a system via Person->Project->System.",
+     "inputSchema": {"type": "object", "properties": {"q": {"type": "string"}}, "required": ["q"]}},
+    {"name": "blast_radius", "description": "What breaks if a system goes down (DEPENDS_ON hops).",
+     "inputSchema": {"type": "object", "properties": {"system": {"type": "string"}}, "required": ["system"]}},
+    {"name": "investigate_alert", "description": "BFS frontier from an alert ticket (algo.bfs).",
+     "inputSchema": {"type": "object", "properties": {"ticket": {"type": "string"}}, "required": ["ticket"]}},
+    {"name": "rank_critical_systems", "description": "Most critical systems via PageRank (algo.pageRank).",
+     "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "auto_assign", "description": "Investigate, rank owners, and ASSIGN the ticket in the graph.",
+     "inputSchema": {"type": "object", "properties": {"ticket": {"type": "string"}, "system": {"type": "string"}}, "required": ["ticket", "system"]}},
+    {"name": "answer_with_sources", "description": "Company-brain answer with cited sources and an action.",
+     "inputSchema": {"type": "object", "properties": {"q": {"type": "string"}}, "required": ["q"]}},
+    {"name": "ingest_ticket", "description": "Add a live ticket to the graph so answers stay current.",
+     "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}, "system": {"type": "string"}}, "required": ["text", "system"]}},
+]
+
+
+def _mcp_call(tool, args):
+    from .db import get_graph
+    g = get_graph()
+    if tool == "ask_owner":
+        q = args.get("q", "payments-api")
+        r = g.query("MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System) WHERE s.name CONTAINS $q "
+                    "RETURN p.name AS person ORDER BY person LIMIT 5", {"q": q})
+        return {"owners": [x[0] for x in r.result_set]}
+    if tool == "blast_radius":
+        s = args.get("system", "payments-api")
+        r = g.query("MATCH (s:System {name:$s})<-[:DEPENDS_ON*1..3]-(x) RETURN DISTINCT x.name LIMIT 20", {"s": s})
+        return {"system": s, "impacted": [x[0] for x in r.result_set]}
+    if tool == "investigate_alert":
+        r = g.query("MATCH (t:Ticket {id:$tk}) CALL algo.bfs(t, 4, null) YIELD nodes "
+                    "RETURN [n in nodes | labels(n)[0] + ':' + coalesce(n.name, n.id, '?')] AS trail",
+                    {"tk": args.get("ticket", "PAY-101")})
+        return {"trail": r.result_set[0][0] if r.result_set else []}
+    if tool == "rank_critical_systems":
+        r = g.query("CALL algo.pageRank('System', 'DEPENDS_ON') YIELD node, score "
+                    "RETURN node.name AS sys, score ORDER BY score DESC LIMIT 5")
+        return {"critical": [{"system": x[0], "score": round(x[1], 4)} for x in r.result_set]}
+    if tool == "auto_assign":
+        return act(args.get("ticket", "PAY-101"), args.get("system", "payments-api"))
+    if tool == "answer_with_sources":
+        return answer(args.get("q", "Who can review the Checkout PR?"))
+    if tool == "ingest_ticket":
+        return ingest("ticket", args.get("text", ""), args.get("system", "payments-api"))
+    raise ValueError(f"unknown tool: {tool}")
+
+
+@app.get("/tools")
+def tools():
+    return {"server": "ops-brain", "protocol": "mcp-json-rpc", "tools": MCP_TOOLS}
+
+
+@app.post("/mcp")
+async def mcp(req: object):
+    """Minimal MCP server (JSON-RPC): initialize / tools/list / tools/call."""
+    import json as _json
+    body = await req.json()
+    mid, method, params = body.get("id"), body.get("method"), body.get("params", {})
+    if method == "initialize":
+        return {"jsonrpc": "2.0", "id": mid,
+                "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}},
+                           "serverInfo": {"name": "ops-brain", "version": "1.0.0"}}}
+    if method == "tools/list":
+        return {"jsonrpc": "2.0", "id": mid, "result": {"tools": MCP_TOOLS}}
+    if method == "tools/call":
+        try:
+            out = _mcp_call(params.get("name", ""), params.get("arguments", {}))
+            return {"jsonrpc": "2.0", "id": mid, "result": {"content": [{"type": "text", "text": _json.dumps(out)}]}}
+        except Exception as e:
+            return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32000, "message": str(e)[:200]}}
+    return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32601, "message": f"unknown method: {method}"}}
