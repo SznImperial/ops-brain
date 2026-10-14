@@ -7,8 +7,9 @@ export const handler = async (event: any) => {
     db = conn.db;
     const graph = conn.graph;
     await graph.query(`MERGE (s:System {name:$s}) MERGE (c:System {name:'checkout-web'}) MERGE (w:System {name:'webhook-worker'}) MERGE (c)-[:DEPENDS_ON]->(s) MERGE (w)-[:DEPENDS_ON]->(c)`, { params: { s: system } });
-    const res: any = await graph.query(`MATCH (s:System {name:$s})<-[:DEPENDS_ON*1..3]-(x) RETURN DISTINCT x.name LIMIT 20`, { params: { s: system } });
+    const res: any = await graph.query(`MATCH (s:System {name:$s})<-[:DEPENDS_ON*1..3]-(x) RETURN DISTINCT x.name AS impacted LIMIT 20`, { params: { s: system } });
     await db.close();
-    return json({ system, impacted: res.data.map((r: any) => r[0]), track: 'T1 Act on Connected Data' });
+    const pick = (r: any) => Array.isArray(r) ? r[0] : (r.impacted ?? r['x.name'] ?? Object.values(r)[0]);
+    return json({ system, impacted: res.data.map(pick), track: 'T1 Act on Connected Data' });
   } catch (e: any) { try { if (db) await db.close(); } catch {} return json({ error: 'Graph query failed. Check Netlify env FALKOR_HOST/PORT/USERNAME/PASSWORD.' }, 500); }
 };
