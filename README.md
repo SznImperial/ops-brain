@@ -17,9 +17,17 @@ Tracks: T1 Agents That Act + T2 Memory/Coordination + T3 Company Brain.
 4. `python -m app.seed`
 5. `uvicorn app.main:app --reload` → open http://127.0.0.1:8000
 
+## Live demo
+https://ops-brain.netlify.app — neo-brutalism UI.
+- T3: `/.netlify/functions/ask?q=payments-api` → Aarav, path Person->Project->System
+- T1: `/.netlify/functions/blast?system=payments-api` → checkout-web, webhook-worker
+- T2: `/.netlify/functions/memory?uid=u1&q=...` + `/.netlify/functions/handoff?ticket=PAY-101`
+- Python mirror: `app/main.py` (`/ask`, `/blast`, `/memory`, `/handoff`)
+
 ## Submission checklist
-- [ ] Public repo + this README + graph model (done here)
-- [ ] app/queries.cypher (the queries product depends on)
+- [x] Public repo + this README + graph model (done here)
+- [x] app/queries.cypher (the queries product depends on)
+- [x] Live deployment (Netlify above) + local setup below
 - [ ] Demo video (see DEMO_SCRIPT.md)
-- [ ] Live deployment OR local setup (Render/Fly for FastAPI)
-- [ ] Tracks entered: T1, T2, T3
+- [ ] Blog post (see BLOG_OUTLINE.md — AirPods prize)
+- [x] Tracks entered: T1, T2, T3
