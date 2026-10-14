@@ -33,6 +33,15 @@ RETURN [n in nodes | labels(n)[0] + ':' + coalesce(n.name, n.id, n.title, '?')] 
 CALL algo.pageRank('System', 'DEPENDS_ON') YIELD node, score
 RETURN node.name AS sys, score ORDER BY score DESC LIMIT 5;
 
+// T3 FRESHNESS - ingest a live ticket, linked on arrival
+MERGE (s:System {name:$system})
+MERGE (t:Ticket {id:$nid}) SET t.title=$text, t.status='open', t.ingested_at=$at
+MERGE (t)-[:REPORTED_IN]->(s);
+
+// T3 FRESHNESS - newest knowledge surfaces first in answers
+MATCH (t:Ticket) WHERE t.status='open'
+RETURN t.id, t.title ORDER BY coalesce(t.ingested_at, 0) DESC LIMIT 3;
+
 // T1 WINNER - ACT: assign ticket + log action (state change proves agent acts)
 MATCH (t:Ticket {id:$ticket}), (pp:Person {name:$who})
 MERGE (t)-[r:ASSIGNED_TO]->(pp) SET r.at=$at, r.by='ops-agent'

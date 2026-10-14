@@ -143,7 +143,7 @@ def answer(q: str = "Who can review the Checkout PR?"):
     """, {"q": q})
     people = [{"person": r[0], "team": r[1], "project": r[2]} for r in owners.result_set]
     docs = g.query("MATCH (d:Doc) RETURN d.title LIMIT 3")
-    tickets = g.query("MATCH (t:Ticket) WHERE t.status='open' RETURN t.id, t.title LIMIT 3")
+    tickets = g.query("MATCH (t:Ticket) WHERE t.status='open' RETURN t.id, t.title ORDER BY coalesce(t.ingested_at, 0) DESC LIMIT 3")
     sources = ([{"type": "Owner", "text": f"{p['person']} ({p['team']})"} for p in people]
                + [{"type": "Doc", "text": r[0]} for r in docs.result_set]
                + [{"type": "Ticket", "text": f"{r[0]}: {r[1]}"} for r in tickets.result_set])
@@ -201,3 +201,25 @@ def path(ticket: str = "PAY-101"):
             "bfs_frontier": bfs.result_set[0][0] if bfs.result_set else [],
             "pagerank_systems": [{"system": r[0], "score": round(r[1], 4)} for r in pr.result_set],
             "agent_reads": "BFS tells the agent WHERE to look, PageRank tells it WHAT matters most"}
+
+
+@app.get("/ingest")
+def ingest(kind: str = "ticket", text: str = "Refund webhook delayed", system: str = "payments-api", tid: str = ""):
+    """T3 FRESHNESS: company knowledge lands in the graph live — next answer cites it."""
+    import time
+    from .db import get_graph
+    g = get_graph()
+    ts = int(time.time() * 1000)
+    if kind == "doc":
+        nid = tid or f"DOC-{ts}"
+        g.query("MERGE (s:System {name:$s}) MERGE (d:Doc {title:$t}) SET d.ingested_at=$at MERGE (d)-[:DESCRIBES]->(s)",
+                {"s": system, "t": text, "at": ts})
+        edge = "DESCRIBES->System"
+    else:
+        nid = tid or f"T-{ts}"
+        g.query("MERGE (s:System {name:$s}) MERGE (t:Ticket {id:$nid}) SET t.title=$t, t.status='open', t.ingested_at=$at MERGE (t)-[:REPORTED_IN]->(s)",
+                {"s": system, "nid": nid, "t": text, "at": ts})
+        edge = "REPORTED_IN->System"
+    total = g.query("MATCH (n) RETURN count(n) AS n").result_set[0][0]
+    return {"track": "T3 knowledge stays current", "created": {kind: nid, "text": text, "edge": edge, "system": system},
+            "total_nodes": total, "proof": "ask /answer again — this shows up in sources"}
