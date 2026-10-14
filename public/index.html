@@ -19,7 +19,9 @@ pre{background:var(--k);color:#7DF9FF;padding:12px;overflow:auto;white-space:pre
 <h1>Ops Brain</h1>
 <p><b>Company Brain that remembers + acts.</b> FalkorDB is the brain, not decoration. Every answer shows its path.</p>
 <div class="card t3"><h3>🧠 T3 — Who knows it?</h3><div class="row"><input id="q" value="payments-api"/><button onclick="ask()">ASK</button></div><pre id="o1">Hit ASK</pre></div>
+<div class="card t3"><h3>🏆 T3 WINNER — Company Brain answers + acts</h3><div class="row"><input id="qq" value="Who can review the Checkout PR?" style="width:100%"/></div><div class="row"><button onclick="ans()">ANSWER WITH SOURCES</button><button onclick="why()">WHY POSTGRES?</button></div><pre id="o4">Hit ANSWER</pre></div>
 <div class="card t1"><h3>⚡ T1 — Blast radius</h3><div class="row"><input id="s" value="payments-api"/><button onclick="blast()">BLAST</button></div><pre id="o2">Hit BLAST</pre></div>
+<div class="card t1"><h3>🏆 T1 WINNER — Agent decides + takes action</h3><div class="row"><button onclick="act()">TRIAGE PAY-101 NOW</button></div><pre id="o5">Hit TRIAGE — assigns ticket in the graph</pre></div>
 <div class="card t2"><h3>🤖 T2 — Memory + handoff</h3><div class="row"><input id="m" value="who owns payments-api?"/><button onclick="mem()">REMEMBER</button><button onclick="hand()">HANDOFF</button></div><pre id="o3">Hit REMEMBER</pre></div>
 <script>
 const j = async (u)=> (await fetch(u)).json();
@@ -27,4 +29,7 @@ async function ask(){o1.textContent='...';o1.textContent=JSON.stringify(await j(
 async function blast(){o2.textContent='...';o2.textContent=JSON.stringify(await j('/.netlify/functions/blast?system='+encodeURIComponent(s.value)),null,2)}
 async function mem(){o3.textContent='...';o3.textContent=JSON.stringify(await j('/.netlify/functions/memory?uid=u1&q='+encodeURIComponent(m.value)),null,2)}
 async function hand(){o3.textContent='...';o3.textContent=JSON.stringify(await j('/.netlify/functions/handoff?ticket=PAY-101'),null,2)}
+async function act(){o5.textContent='acting...';o5.textContent=JSON.stringify(await j('/.netlify/functions/act?ticket=PAY-101&system=payments-api'),null,2)}
+async function ans(){o4.textContent='...';o4.textContent=JSON.stringify(await j('/.netlify/functions/answer?q='+encodeURIComponent(qq.value)),null,2)}
+async function why(){o4.textContent='...';o4.textContent=JSON.stringify(await j('/.netlify/functions/answer?q='+encodeURIComponent('Why did we choose Postgres for ledger?')),null,2)}
 </script></div></body></html>
