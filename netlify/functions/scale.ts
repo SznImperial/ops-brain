@@ -10,7 +10,7 @@ export const handler = async (event: any) => {
       const chunk = [];
       for (let i = start; i < Math.min(start + batch, nodes); i++)
         chunk.push({ i, nm: `scale-user-${String(i).padStart(5, '0')}`, tk: `SCALE-${String(i).padStart(5, '0')}` });
-      await graph.query(`UNWIND $chunk AS row MERGE (p:Person {name: row.nm}) SET p.team='Scale', p.synthetic=true MERGE (t:Ticket {id: row.tk}) SET t.title='Synthetic load ticket', t.status='open', t.synthetic=true MERGE (p)-[:WORKS_ON]->(:Project {name:'Checkout'}) MERGE (t)-[:REPORTED_IN]->(:System {name:'payments-api'})`, { params: { chunk } });
+      await graph.query(`UNWIND $chunk AS row MERGE (proj:Project {name:'Checkout'}) MERGE (sys:System {name:'payments-api'}) MERGE (p:Person {name: row.nm}) SET p.team='Scale', p.synthetic=true MERGE (t:Ticket {id: row.tk}) SET t.title='Synthetic load ticket', t.status='open', t.synthetic=true MERGE (p)-[:WORKS_ON]->(proj) MERGE (t)-[:REPORTED_IN]->(sys)`, { params: { chunk } });
     }
     const ingest_ms = Date.now() - t0, t1 = Date.now();
     const owners: any = await graph.query(`MATCH (p:Person)-[:WORKS_ON]->(:Project {name:'Checkout'}) RETURN count(p) AS n`, { params: {} });

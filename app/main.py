@@ -166,10 +166,12 @@ def scale(nodes: int = 2000):
         chunk = [{"i": i, "nm": f"scale-user-{i:05d}", "tk": f"SCALE-{i:05d}"} for i in range(start, min(start + batch, nodes))]
         g.query("""
         UNWIND $chunk AS row
+        MERGE (proj:Project {name:'Checkout'})
+        MERGE (sys:System {name:'payments-api'})
         MERGE (p:Person {name: row.nm}) SET p.team='Scale', p.synthetic=true
         MERGE (t:Ticket {id: row.tk}) SET t.title='Synthetic load ticket', t.status='open', t.synthetic=true
-        MERGE (p)-[:WORKS_ON]->(:Project {name:'Checkout'})
-        MERGE (t)-[:REPORTED_IN]->(:System {name:'payments-api'})
+        MERGE (p)-[:WORKS_ON]->(proj)
+        MERGE (t)-[:REPORTED_IN]->(sys)
         """, {"chunk": chunk})
     ingest_ms = int((time.perf_counter() - t0) * 1000)
     t1 = time.perf_counter()
@@ -181,3 +183,21 @@ def scale(nodes: int = 2000):
             "people_on_checkout": owners.result_set[0][0], "blast_count": blast.result_set[0][0],
             "total_nodes": total.result_set[0][0], "traversal_ms": query_ms,
             "method": "UNWIND batches of 500, MERGE idempotent — click twice, no dupes"}
+
+
+@app.get("/path")
+def path(ticket: str = "PAY-101"):
+    """T1 ALGORITHMS: agent calls BFS + PageRank as tools before acting."""
+    from .db import get_graph
+    g = get_graph()
+    bfs = g.query("MATCH (t:Ticket {id:$tk}) CALL algo.bfs(t, 4, null) YIELD nodes "
+                  "RETURN [n in nodes | labels(n)[0] + ':' + coalesce(n.name, n.id, n.title, '?')] AS trail",
+                  {"tk": ticket})
+    pr = g.query("CALL algo.pageRank('System', 'DEPENDS_ON') YIELD node, score "
+                 "RETURN node.name AS sys, score ORDER BY score DESC LIMIT 5")
+    return {"track": "T1 graph algorithms as agent tools", "ticket": ticket,
+            "tools_used": ["algo.bfs(t, 4) — investigation frontier from alert",
+                           "algo.pageRank('System','DEPENDS_ON') — most critical system"],
+            "bfs_frontier": bfs.result_set[0][0] if bfs.result_set else [],
+            "pagerank_systems": [{"system": r[0], "score": round(r[1], 4)} for r in pr.result_set],
+            "agent_reads": "BFS tells the agent WHERE to look, PageRank tells it WHAT matters most"}

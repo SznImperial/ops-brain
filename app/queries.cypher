@@ -25,6 +25,14 @@ MATCH (pp:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System {name:$system})
 OPTIONAL MATCH (pp)-[:KNOWS]->(s)
 RETURN pp.name AS person, pp.team AS team, count(*) AS score ORDER BY score DESC LIMIT 3;
 
+// T1 ALGORITHMS - BFS investigation frontier from an alert (agent tool #1)
+MATCH (t:Ticket {id:$ticket}) CALL algo.bfs(t, 4, null) YIELD nodes
+RETURN [n in nodes | labels(n)[0] + ':' + coalesce(n.name, n.id, n.title, '?')] AS trail;
+
+// T1 ALGORITHMS - PageRank most critical system (agent tool #2)
+CALL algo.pageRank('System', 'DEPENDS_ON') YIELD node, score
+RETURN node.name AS sys, score ORDER BY score DESC LIMIT 5;
+
 // T1 WINNER - ACT: assign ticket + log action (state change proves agent acts)
 MATCH (t:Ticket {id:$ticket}), (pp:Person {name:$who})
 MERGE (t)-[r:ASSIGNED_TO]->(pp) SET r.at=$at, r.by='ops-agent'
