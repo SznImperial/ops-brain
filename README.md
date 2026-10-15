@@ -32,6 +32,6 @@ https://ops-brain.netlify.app — neo-brutalism UI.
 - [x] Public repo + this README + graph model (done here)
 - [x] app/queries.cypher (the queries product depends on)
 - [x] Live deployment (Netlify above) + local setup below
-- [ ] Demo video (see DEMO_SCRIPT.md)
-- [ ] Blog post (see BLOG_OUTLINE.md — AirPods prize)
+- [ ] Demo video (record from your local script, upload Unlisted to YouTube)
+- [ ] Blog post (AirPods prize — write from your local outline)
 - [x] Tracks entered: T1, T2, T3
