@@ -8,7 +8,7 @@ export const handler = async (event: any) => {
     db = conn.db; const graph = conn.graph;
     const blast: any = await graph.query(`MATCH (s:System {name:$s})<-[:DEPENDS_ON*1..3]-(x) RETURN DISTINCT x.name AS impacted LIMIT 20`, { params: { s: system } });
     const impacted = blast.data.map((r: any) => Array.isArray(r) ? r[0] : (r.impacted ?? Object.values(r)[0]));
-    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System {name:$s}) OPTIONAL MATCH (pp)-[:KNOWS]->(s) RETURN pp.name AS person, pp.team AS team, count(*) AS score ORDER BY score DESC LIMIT 3`, { params: { s: system } });
+    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System {name:$s}) WHERE pp.synthetic IS NULL OPTIONAL MATCH (pp)-[:KNOWS]->(s) RETURN pp.name AS person, pp.team AS team, count(*) AS score ORDER BY score DESC LIMIT 3`, { params: { s: system } });
     const ranking = owners.data.map((r: any) => Array.isArray(r) ? { person: r[0], team: r[1], score: r[2] } : { person: r.person, team: r.team, score: r.score });
     const assignee = ranking[0]?.person || 'Aarav';
     await graph.query(`MATCH (t:Ticket {id:$tk}), (pp:Person {name:$who}) MERGE (t)-[r:ASSIGNED_TO]->(pp) SET r.at=$at, r.by='ops-agent' MERGE (a:Action {ticket:$tk, kind:'auto-assign'}) SET a.to=$who, a.at=$at, a.system=$s SET t.status='triaged'`, { params: { tk: ticket, who: assignee, at: new Date().toISOString(), s: system } });

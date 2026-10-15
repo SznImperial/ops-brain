@@ -14,7 +14,7 @@ const cell = (r: any, k: string) => Array.isArray(r) ? r[0] : (r[k] ?? Object.va
 
 async function callTool(graph: any, name: string, a: any) {
   if (name === 'ask_owner') {
-    const r: any = await graph.query(`MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System) WHERE s.name CONTAINS $q RETURN p.name AS person ORDER BY person LIMIT 5`, { params: { q: a.q || 'payments-api' } });
+    const r: any = await graph.query(`MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System) WHERE s.name CONTAINS $q AND p.synthetic IS NULL RETURN p.name AS person ORDER BY person LIMIT 5`, { params: { q: a.q || 'payments-api' } });
     return { owners: r.data.map((x: any) => cell(x, 'person')) };
   }
   if (name === 'blast_radius') {
@@ -31,14 +31,14 @@ async function callTool(graph: any, name: string, a: any) {
   }
   if (name === 'auto_assign') {
     const ticket = a.ticket || 'PAY-101', system = a.system || 'payments-api';
-    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System {name:$s}) RETURN pp.name AS person LIMIT 1`, { params: { s: system } });
+    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System {name:$s}) WHERE pp.synthetic IS NULL RETURN pp.name AS person LIMIT 1`, { params: { s: system } });
     const who = cell(owners.data[0], 'person');
     await graph.query(`MATCH (t:Ticket {id:$tk}), (pp:Person {name:$who}) MERGE (t)-[r:ASSIGNED_TO]->(pp) SET t.status='triaged'`, { params: { tk: ticket, who } });
     return { assigned_to: who, ticket, ticket_status: 'triaged' };
   }
   if (name === 'answer_with_sources') {
     const q = a.q || 'Who can review the Checkout PR?';
-    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(pr:Project) WHERE pr.name CONTAINS 'Checkout' OR $q CONTAINS pr.name RETURN pp.name AS person, pp.team AS team LIMIT 2`, { params: { q } });
+    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(pr:Project) WHERE (pr.name CONTAINS 'Checkout' OR $q CONTAINS pr.name) AND pp.synthetic IS NULL RETURN pp.name AS person, pp.team AS team LIMIT 2`, { params: { q } });
     const people = owners.data.map((x: any) => Array.isArray(x) ? { person: x[0], team: x[1] } : x);
     return { answer: people[0] ? `Best reviewer: ${people[0].person} (${people[0].team}).` : 'No owner found.', sources: people };
   }

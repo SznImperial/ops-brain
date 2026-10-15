@@ -13,7 +13,7 @@ export const handler = async (event: any) => {
       const o = Array.isArray(row) ? { t: row[0], reason: row[1], doc: row[2], who: row[3] } : row;
       return json({ track: 'T3 Company Brain', q, answer: `We chose Postgres for the ledger because: ${o.reason} (by ${o.who} in '${o.doc}').`, sources: [{ type: 'Decision', text: o.t }, { type: 'Reason', text: o.reason }, { type: 'Doc', text: o.doc }, { type: 'Author', text: o.who }], path: 'Decision<-DECIDED-Doc<-WROTE-Person' });
     }
-    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(pr:Project) WHERE pr.name CONTAINS 'Checkout' OR $q CONTAINS pr.name RETURN pp.name AS person, pp.team AS team, pr.name AS project LIMIT 3`, { params: { q } });
+    const owners: any = await graph.query(`MATCH (pp:Person)-[:WORKS_ON]->(pr:Project) WHERE (pr.name CONTAINS 'Checkout' OR $q CONTAINS pr.name) AND pp.synthetic IS NULL RETURN pp.name AS person, pp.team AS team, pr.name AS project LIMIT 3`, { params: { q } });
     const people = owners.data.map((r: any) => Array.isArray(r) ? { person: r[0], team: r[1], project: r[2] } : r);
     const docs: any = await graph.query(`MATCH (d:Doc) RETURN d.title AS t LIMIT 3`, { params: {} });
     const tickets: any = await graph.query(`MATCH (t:Ticket) WHERE t.status='open' RETURN t.id AS id, t.title AS title ORDER BY coalesce(t.ingested_at, 0) DESC LIMIT 3`, { params: {} });

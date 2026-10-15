@@ -8,7 +8,7 @@ export const handler = async (event: any) => {
     const graph = conn.graph;
     const res: any = await graph.query(
       `MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System)
-       WHERE s.name CONTAINS $q OR $q CONTAINS s.name
+       WHERE (s.name CONTAINS $q OR $q CONTAINS s.name) AND p.synthetic IS NULL
        RETURN p.name AS person, count(*) AS projects ORDER BY projects DESC LIMIT 5`,
       { params: { q } });
     await db.close();

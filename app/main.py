@@ -31,7 +31,7 @@ def ask(q: str = ""):
     # T3: ownership query (parameterized to avoid injection)
     cypher = """
     MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System)
-    WHERE s.name CONTAINS $q OR $q CONTAINS s.name
+    WHERE (s.name CONTAINS $q OR $q CONTAINS s.name) AND p.synthetic IS NULL
     RETURN p.name AS person, count(*) AS projects ORDER BY projects DESC LIMIT 5
     """
     try:
@@ -102,6 +102,7 @@ def act(ticket: str = "PAY-101", system: str = "payments-api"):
     # 2. decide: rank owners by graph proximity (WORKS_ON + KNOWS)
     owners = g.query("""
     MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System {name:$s})
+    WHERE p.synthetic IS NULL
     OPTIONAL MATCH (p)-[:KNOWS]->(s)
     RETURN p.name AS person, p.team AS team, count(*) AS score ORDER BY score DESC LIMIT 3
     """, {"s": system})
@@ -138,7 +139,7 @@ def answer(q: str = "Who can review the Checkout PR?"):
     # default: reviewer/owner question — rank people, cite docs + tickets
     owners = g.query("""
     MATCH (p:Person)-[:WORKS_ON]->(pr:Project)
-    WHERE pr.name CONTAINS 'Checkout' OR $q CONTAINS pr.name
+    WHERE (pr.name CONTAINS 'Checkout' OR $q CONTAINS pr.name) AND p.synthetic IS NULL
     RETURN p.name AS person, p.team AS team, pr.name AS project LIMIT 3
     """, {"q": q})
     people = [{"person": r[0], "team": r[1], "project": r[2]} for r in owners.result_set]
@@ -249,7 +250,7 @@ def _mcp_call(tool, args):
     if tool == "ask_owner":
         q = args.get("q", "payments-api")
         r = g.query("MATCH (p:Person)-[:WORKS_ON]->(:Project)-[:USES]->(s:System) WHERE s.name CONTAINS $q "
-                    "RETURN p.name AS person ORDER BY person LIMIT 5", {"q": q})
+                    "AND p.synthetic IS NULL RETURN p.name AS person ORDER BY person LIMIT 5", {"q": q})
         return {"owners": [x[0] for x in r.result_set]}
     if tool == "blast_radius":
         s = args.get("system", "payments-api")
