@@ -64,18 +64,30 @@ def blast(system: str = "payments-api"):
 
 
 @app.get("/memory")
-def memory(uid: str = "u1", q: str = ""):
-    """T2: per-user episodic memory + shared handoff demo."""
+def memory(uid: str = "u1", q: str = "", tenant: str = "default", fact: str = ""):
+    """T2: episodic + semantic memory, namespaced per tenant."""
     from .db import get_graph
     from datetime import datetime
     g = get_graph()
+    eid = uid if tenant == "default" else f"{tenant}:{uid}"
+    now = datetime.utcnow().isoformat()
     if q:
         g.query("MERGE (u:User {id:$uid}) CREATE (u)-[:ASKED {at:$at}]->(:Question {text:$q})",
-                {"uid": uid, "at": datetime.utcnow().isoformat(), "q": q})
+                {"uid": eid, "at": now, "q": q})
+    stored_fact = None
+    if fact and "=" in fact:
+        k, v = [s.strip() for s in fact.split("=", 1)]
+        g.query("MERGE (u:User {id:$uid}) MERGE (f:Fact {k:$k, v:$v}) "
+                "MERGE (u)-[r:KNOWS_FACT]->(f) SET r.at=$at",
+                {"uid": eid, "k": k, "v": v, "at": now})
+        stored_fact = {"k": k, "v": v}
     hist = g.query("MATCH (u:User {id:$uid})-[a:ASKED]->(q:Question) RETURN q.text, a.at ORDER BY a.at DESC LIMIT 10",
-                   {"uid": uid})
-    return {"uid": uid, "stored": bool(q),
-            "history": [{"q": r[0], "at": r[1]} for r in hist.result_set]}
+                   {"uid": eid})
+    facts = g.query("MATCH (u:User {id:$uid})-[:KNOWS_FACT]->(f:Fact) RETURN f.k, f.v LIMIT 20",
+                    {"uid": eid})
+    return {"uid": uid, "tenant": tenant, "stored": bool(q), "stored_fact": stored_fact,
+            "history": [{"q": r[0], "at": r[1]} for r in hist.result_set],
+            "semantic_facts": [{"k": r[0], "v": r[1]} for r in facts.result_set]}
 
 
 @app.get("/handoff")
@@ -304,3 +316,24 @@ async def mcp(req: object):
         except Exception as e:
             return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32000, "message": str(e)[:200]}}
     return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32601, "message": f"unknown method: {method}"}}
+
+
+@app.get("/burst")
+def burst(n: int = 20):
+    """T2 CONCURRENCY: N parallel readers, 10 workers — all must succeed."""
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    n = max(1, min(n, 100))
+
+    def one(_):
+        from .db import get_graph
+        g = get_graph()
+        r = g.query("MATCH (p:Person)-[:WORKS_ON]->(:Project {name:'Checkout'}) RETURN count(p) AS n")
+        return r.result_set[0][0]
+
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        out = list(ex.map(one, range(n)))
+    ms = int((time.perf_counter() - t0) * 1000)
+    return {"track": "T2 high-concurrency reads", "parallel_queries": n, "workers": 10,
+            "ok": sum(1 for x in out if x > 0), "ms": ms}

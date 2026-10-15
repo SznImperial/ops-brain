@@ -48,6 +48,12 @@ MATCH (c:Chat) RETURN c.id, c.text ORDER BY coalesce(c.sent_at, 0) DESC LIMIT 2;
 // T2 - procedural memory: what the agent learned (playbooks survive sessions)
 MATCH (a:Agent)-[:LEARNED]->(pb:Playbook) RETURN a.name, pb.system, pb.steps;
 
+// T2 - semantic facts: what the agent knows about a user (per tenant)
+MATCH (u:User {id:$uid})-[:KNOWS_FACT]->(f:Fact) RETURN f.k, f.v LIMIT 20;
+
+// T2 - tenant isolation: same uid, different tenants never mix
+MATCH (u:User)-[a:ASKED]->(q:Question) WHERE u.id STARTS WITH $tenant + ':' RETURN u.id, q.text LIMIT 10;
+
 // T1 WINNER - ACT: assign ticket + log action (state change proves agent acts)
 MATCH (t:Ticket {id:$ticket}), (pp:Person {name:$who})
 MERGE (t)-[r:ASSIGNED_TO]->(pp) SET r.at=$at, r.by='ops-agent'

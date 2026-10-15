@@ -24,7 +24,7 @@ https://ops-brain.netlify.app — neo-brutalism UI.
 - T1 act: `/act?ticket=PAY-101&system=payments-api` → investigates, ranks owners, ASSIGNS ticket
 - T1 algorithms: `/path?ticket=PAY-101` → `algo.bfs` frontier + `algo.pageRank` ranking
 - T1 MCP: `POST /mcp` JSON-RPC (`initialize` / `tools/list` / `tools/call`, 7 tools) — `GET /tools` lists them
-- T2 memory: `/memory?uid=u1&q=...` + `/handoff?ticket=PAY-101`
+- T2 memory: `/memory?uid=u1&q=...&fact=team+%3D+Checkout` (episodic + semantic, `&tenant=acme` isolates) + `/handoff?ticket=PAY-101` + `/burst?n=20` (parallel reads)
 - Scale: `/scale?nodes=2000` → timed UNWIND ingest + traversal
 - Python mirror: `app/main.py` (same routes, `/mcp` included)
 
