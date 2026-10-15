@@ -113,13 +113,17 @@ def act(ticket: str = "PAY-101", system: str = "payments-api"):
     MATCH (t:Ticket {id:$tk}), (p:Person {name:$who})
     MERGE (t)-[r:ASSIGNED_TO]->(p) SET r.at=$at, r.by='ops-agent'
     MERGE (a:Action {ticket:$tk, kind:'auto-assign'}) SET a.to=$who, a.at=$at, a.system=$s
+    MERGE (ag:Agent {name:'ops-agent'}) MERGE (pb:Playbook {system:$s})
+    SET pb.steps='blast-radius -> rank-owners -> assign', pb.updated=$at
+    MERGE (ag)-[:LEARNED]->(pb)
     SET t.status='triaged'
     """, {"tk": ticket, "who": assignee, "at": datetime.utcnow().isoformat(), "s": system})
     return {"track": "T1 Agents That Act", "ticket": ticket, "system": system,
             "reasoning": [f"blast_radius({system})={impacted}", f"owner_ranking={ranking}", f"decision=assign {ticket} to {assignee}"],
             "action_taken": {"assigned_to": assignee, "ticket_status": "triaged"},
+            "procedural_memory": {"agent": "ops-agent", "playbook": system, "steps": "blast-radius -> rank-owners -> assign"},
             "path": "Alert->System->DEPENDS_ON->Impacted + Person->Project->System->Owner",
-            "cypher": "MATCH blast + MATCH owners + MERGE ASSIGNED_TO + MERGE Action"}
+            "cypher": "MATCH blast + MATCH owners + MERGE ASSIGNED_TO + MERGE Action + MERGE Playbook"}
 
 
 @app.get("/answer")
@@ -145,9 +149,11 @@ def answer(q: str = "Who can review the Checkout PR?"):
     people = [{"person": r[0], "team": r[1], "project": r[2]} for r in owners.result_set]
     docs = g.query("MATCH (d:Doc) RETURN d.title LIMIT 3")
     tickets = g.query("MATCH (t:Ticket) WHERE t.status='open' RETURN t.id, t.title ORDER BY coalesce(t.ingested_at, 0) DESC LIMIT 3")
+    chats = g.query("MATCH (c:Chat) RETURN c.id, c.text ORDER BY coalesce(c.sent_at, 0) DESC LIMIT 2")
     sources = ([{"type": "Owner", "text": f"{p['person']} ({p['team']})"} for p in people]
                + [{"type": "Doc", "text": r[0]} for r in docs.result_set]
-               + [{"type": "Ticket", "text": f"{r[0]}: {r[1]}"} for r in tickets.result_set])
+               + [{"type": "Ticket", "text": f"{r[0]}: {r[1]}"} for r in tickets.result_set]
+               + [{"type": "Chat", "text": f"{r[0]} #{r[1]}"} for r in chats.result_set])
     if people:
         action = {"suggested_reviewer": people[0]["person"], "draft": f"Assigned {people[0]['person']} to review (team {people[0]['team']})."}
     return {"track": "T3 Company Brain", "q": q, "answer": f"Best reviewer: {people[0]['person']} ({people[0]['team']}) — works on Checkout, knows the stack." if people else "No owner found.",

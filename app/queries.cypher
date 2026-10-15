@@ -42,6 +42,12 @@ MERGE (t)-[:REPORTED_IN]->(s);
 MATCH (t:Ticket) WHERE t.status='open'
 RETURN t.id, t.title ORDER BY coalesce(t.ingested_at, 0) DESC LIMIT 3;
 
+// T3 - chats in the same graph, cited like docs and tickets
+MATCH (c:Chat) RETURN c.id, c.text ORDER BY coalesce(c.sent_at, 0) DESC LIMIT 2;
+
+// T2 - procedural memory: what the agent learned (playbooks survive sessions)
+MATCH (a:Agent)-[:LEARNED]->(pb:Playbook) RETURN a.name, pb.system, pb.steps;
+
 // T1 WINNER - ACT: assign ticket + log action (state change proves agent acts)
 MATCH (t:Ticket {id:$ticket}), (pp:Person {name:$who})
 MERGE (t)-[r:ASSIGNED_TO]->(pp) SET r.at=$at, r.by='ops-agent'

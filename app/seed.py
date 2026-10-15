@@ -31,6 +31,13 @@ MERGE (d2:Doc {title:'Checkout ownership'}) MERGE (d2)-[:DESCRIBES]->(c)
 MERGE (dec:Decision {topic:'chose Postgres for ledger'}) SET dec.reason='strong consistency, team knew it'
 MERGE (d)-[:DECIDED]->(dec)
 MERGE (a)-[:WROTE]->(d)
+MERGE (c1:Chat {id:'slack-pay-1'}) SET c1.text='payments retry timing out again, paging Aarav', c1.channel='#incidents', c1.sent_at=1
+MERGE (c2:Chat {id:'slack-pay-2'}) SET c2.text='Zainab: checkout-web also affected, same root cause', c2.channel='#incidents', c2.sent_at=2
+MERGE (c3:Chat {id:'slack-auth-1'}) SET c3.text='login spike looks unrelated, watching auth-service', c3.channel='#incidents', c3.sent_at=3
+MERGE (c1)-[:MENTIONS]->(s)
+MERGE (c2)-[:MENTIONS]->(s)
+MERGE (c2)-[:MENTIONS]->(c)
+MERGE (c3)-[:MENTIONS]->(au)
 """
 
 def main():
