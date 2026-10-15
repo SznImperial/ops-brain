@@ -13,8 +13,11 @@
 
 Slow-scroll once so cards rise in — motion is on, let judges see it.
 
-### 0:25-0:50 SOLUTION — switch to FalkorDB Browser graph
-> "Everything is nodes and edges in FalkorDB Cloud. Person works on Project, Project uses System, Ticket reported in System, User asked Question, Agent hands off to Agent. One instance, one graph called company_brain. This is the whole company brain."
+### 0:25-0:50 SOLUTION — switch to FalkorDB Browser graph, zoom the starburst
+> "Everything is nodes and edges in FalkorDB Cloud. Person works on Project, Project uses System, Ticket reported in System, User asked Question, Agent hands off to Agent. One instance, one graph called company_brain — over four thousand nodes, almost five thousand edges, and every query you are about to see answers in about three hundred milliseconds."
+
+Hold 4 sec on the NODES/EDGES panel. Then add, honestly:
+> "Full disclosure: this is running on FalkorDB's free tier, so I capped the demo load at a few thousand nodes. The traversals and algorithms are matrix-based, so on real iron this same code scales to millions — imagine what it does on the machine we're competing for."
 
 ### 0:50-1:30 T3 — back to Netlify, click ASK (payments-api), then ANSWER WITH SOURCES + WHY POSTGRES?
 > "Track 3, Company Brain. Who knows payments-api? Aarav, with the full path on screen — no hallucination. Best reviewer for the Checkout PR? Ranked people plus the docs and tickets it cited. And why Postgres? Traced back to the decision, the reason, the doc, the author. Every answer carries its sources."
@@ -36,7 +39,7 @@ Hold 3 sec on `assigned_to`.
 > "Track 2, memory and coordination. I ask as user u1, it stores User Asked Question with timestamp. Refresh — history is still there. And Triage agent hands off to Fixer agent with the ticket summary shared."
 
 ### 3:10-3:30 CLOSE — scroll to top, show badge T1+T2+T3
-> "One repo, all three tracks. T3 brain with sources, T2 memory, T1 action with algorithms and MCP. Frontend is neo-brutalism on Netlify, functions are TypeScript with falkordb-ts, mirror API in Python FastAPI. Links are in the README — repo, live demo, queries. Thanks."
+> "One repo, all three tracks. T3 brain with sources, T2 memory, T1 action with algorithms and MCP — on four thousand nodes at three hundred milliseconds a query. Frontend is neo-brutalism on Netlify, functions are TypeScript with falkordb-ts, mirror API in Python FastAPI. Links are in the README — repo, live demo, queries. Give this graph an M6 and watch it fly. Thanks."
 
 Stop recording.
 
