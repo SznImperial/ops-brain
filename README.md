@@ -7,7 +7,7 @@
 | 🎥 **Demo video** | https://www.loom.com/share/29ddc85394764764b898bf3bfe2a1440 |
 | 🌐 **Live demo** | https://ops-brain.netlify.app |
 | 💻 **Repo** | https://github.com/SznImperial/ops-brain |
-| 🗄️ **Graph** | FalkorDB Cloud — one graph, `company_brain`, 4,024 nodes / 4,926 edges at recording (it grows as tickets are ingested) |
+| 🗄️ **Graph** | FalkorDB Cloud — one graph, `company_brain`, 4,024 nodes at recording (4,035 now; it grows as tickets are ingested) |
 
 ---
 
@@ -62,7 +62,7 @@ Open https://ops-brain.netlify.app and click down the page. The cards are groupe
 │ falkordb-ts, one conn/req    │        │   graph: company_brain     │
 └──────────────────────────────┘        │   Cypher + algo.bfs        │
 ┌──────────────────────────────┐        │   algo.pageRank            │
-│ Python FastAPI (local/mirror)│───────▶│   4,024 nodes / 4,926 edges│
+│ Python FastAPI (local/mirror)│───────▶│   ~4,000 nodes / ~4,000 edges│
 │ uvicorn app.main:app         │        └────────────────────────────┘
 └──────────────────────────────┘
 ```
@@ -303,7 +303,7 @@ No Docker required. The seed is hand-authored and idempotent (`MERGE`, not `CREA
 
 ## Scale & performance
 
-Measured on FalkorDB Cloud free tier, 4,024 nodes / 4,926 edges:
+Measured on FalkorDB Cloud free tier — 4,024 nodes at recording (4,035 now, 4,036 edges; most edges are the 2,000 scale `WORKS_ON` + 2,000 `REPORTED_IN` pairs):
 
 | Operation | Time |
 |---|---|
