@@ -131,7 +131,7 @@ netlify.toml        publish public, functions netlify/functions, esbuild
 - `Ticket.status`, `Ticket.ingested_at` — freshness ordering (`ORDER BY coalesce(ingested_at, 0) DESC`).
 - `Action.*` — audit trail of what the agent did, when, and to whom.
 
-Full runnable queries: [`app/queries.cypher`](app/queries.cypher).
+Full runnable queries: [`app/queries.cypher`](app/queries.cypher) — 26 statements, each validated against the live graph with `EXPLAIN` before submission.
 
 ---
 
