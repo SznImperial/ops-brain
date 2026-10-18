@@ -281,7 +281,8 @@ curl -X POST https://ops-brain.netlify.app/.netlify/functions/mcp \
 #    https://app.falkordb.cloud → copy host / port / username / password
 
 # 2. Configure
-cp .env.example .env        # FALKOR_HOST, FALKOR_PORT, FALKOR_USERNAME, FALKOR_PASSWORD, GRAPH_NAME
+cp .env.example .env        # Windows: copy .env.example .env
+# FALKOR_HOST, FALKOR_PORT, FALKOR_USERNAME, FALKOR_PASSWORD, GRAPH_NAME
 
 # 3. Install & seed & run
 pip install -r requirements.txt
